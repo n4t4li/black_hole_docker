@@ -1,13 +1,18 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.10)
 project(BlackHoleSim)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# vcpkg toolchain (ensure it's set before project())
+if(NOT CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg toolchain file")
+endif()
+
 # Dependencies
 find_package(GLEW REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
+find_package(glfw3 REQUIRED CONFIG)
+find_package(glm REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
 
 # Common dependencies
