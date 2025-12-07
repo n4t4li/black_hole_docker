@@ -168,8 +168,8 @@ struct Engine {
 
     int WIDTH = 800;  // Window width
     int HEIGHT = 600; // Window height
-    int COMPUTE_WIDTH  = 200;   // Compute resolution width
-    int COMPUTE_HEIGHT = 150;  // Compute resolution height
+    int COMPUTE_WIDTH  = 100;   // Compute resolution width (reduced from 200 for performance)
+    int COMPUTE_HEIGHT = 75;   // Compute resolution height (reduced from 150 for performance)
     float width = 100000000000.0f; // Width of the viewport in meters
     float height = 75000000000.0f; // Height of the viewport in meters
     
