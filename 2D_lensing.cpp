@@ -212,20 +212,119 @@ void rk4Step(Ray& ray, double dλ, double rs) {
 }
 
 
+// MES FONCTIONS CALLBACK 
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    if (engine.middleMousePressed) {
+        double deltaX = xpos - engine.lastMouseX;
+        double deltaY = ypos - engine.lastMouseY;
+        
+        
+        double worldDeltaX = deltaX * (engine.width * 2.0f) / engine.WIDTH;
+        double worldDeltaY = deltaY * (engine.height * 2.0f) / engine.HEIGHT;
+        
+        engine.offsetX -= worldDeltaX;
+        engine.offsetY += worldDeltaY;
+    }
+    engine.lastMouseX = xpos;
+    engine.lastMouseY = ypos;
+}
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        if (action == GLFW_PRESS) {
+            engine.middleMousePressed = true;
+        } else if (action == GLFW_RELEASE) {
+            engine.middleMousePressed = false;
+        }
+    }
+}
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    float zoomFactor = 1.1f;
+    if (yoffset > 0) {
+        engine.zoom *= zoomFactor;
+    } else {
+        engine.zoom /= zoomFactor;
+    }
+    engine.width /= engine.zoom;
+    engine.height /= engine.zoom;
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_SPACE) {
+            // ajouter un nouveau rayon
+            rays.push_back(Ray(vec2(-1e11, 3.27606302719999999e10), vec2(c, 0.0f)));
+            cout << "Ajouté un rayon. Total des rayons: " << rays.size() << endl;
+        }
+        if (key == GLFW_KEY_C) {
+            // Effacer tous les rayons
+            rays.clear();
+            cout << "Effacé tous les rayons" << endl;
+        }
+        if (key == GLFW_KEY_ESCAPE) {
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        }
+    }
+}
+
 int main () {
-    //rays.push_back(Ray(vec2(-1e11, 3.27606302719999999e10), vec2(c, 0.0f)));
+    // Setup callbacks
+    glfwSetCursorPosCallback(engine.window, mouseCallback);
+    glfwSetMouseButtonCallback(engine.window, mouseButtonCallback);
+    glfwSetScrollCallback(engine.window, scrollCallback);
+    glfwSetKeyCallback(engine.window, keyCallback);
+
+    // Configuration OpenGL
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+
+    // Ajouter un rayon initial
+    rays.push_back(Ray(vec2(-1e11, 3.27606302719999999e10), vec2(c, 0.0f)));
+    cout << "[INFO] 2D Black Hole Simulation Started" << endl;
+    cout << "[CONTROLS]" << endl;
+    cout << "  SPACE: Add new ray" << endl;
+    cout << "  C: Clear all rays" << endl;
+    cout << "  Middle Mouse: Pan view" << endl;
+    cout << "  Scroll: Zoom in/out" << endl;
+    cout << "  ESC: Exit" << endl;
+
+    auto lastTime = std::chrono::high_resolution_clock::now();
+    int frameCount = 0;
+
     while(!glfwWindowShouldClose(engine.window)) {
         engine.run();
         SagA.draw();
 
         for (auto& ray : rays) {
             ray.step(1.0f, SagA.r_s);
-            ray.draw(rays);
+        }
+        
+        // Dessiner tous les rayons une fois
+        if (!rays.empty()) {
+            rays[0].draw(rays);
         }
 
         glfwSwapBuffers(engine.window);
         glfwPollEvents();
+
+        // Compteur de FPS
+        frameCount++;
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastTime).count();
+        if (elapsed >= 1) {
+            cout << "FPS: " << frameCount << " | Rays: " << rays.size() << endl;
+            frameCount = 0;
+            lastTime = currentTime;
+        }
     }
 
+    glfwDestroyWindow(engine.window);
+    glfwTerminate();
     return 0;
 }
